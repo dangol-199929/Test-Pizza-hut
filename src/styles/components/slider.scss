@@ -1,0 +1,13 @@
+.slider{
+    @apply w-full h-[4px] bg-gray-1350 mt-5 rounded-[5px]; 
+
+    .thumb{
+        @apply w-[15px] h-[15px] cursor-pointer bg-primary rounded-full top-[-5px] focus-visible:outline-none;
+    }
+    .track-1{
+        @apply bg-primary h-[4px];
+    }
+}
+.pricevalue{
+    font-family: 'Rubik' , sans-serif;
+}

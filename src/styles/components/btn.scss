@@ -1,0 +1,10 @@
+.submit-btn {
+  @apply flex items-center gap-[0.5rem] bg-[#f2f2f2] text-slate-850 text-sm font-bold uppercase px-[30px] py-[11px] rounded-[30px] hover:bg-primary hover:text-white hover:border-primary disabled:bg-primary disabled:text-white disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none;
+}
+.btn-outline {
+  @apply border border-primary text-primary hover:bg-primary hover:text-white transition-all hover:border-primary rounded-md;
+}
+
+.btn-primary {
+  @apply bg-primary;
+}

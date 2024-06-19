@@ -1,0 +1,15 @@
+// .table-header {
+//     @apply uppercase font-bold text-gray-50 text-sm bg-white-50;
+// }
+
+.data-title {
+  @apply leading-6 text-gray-850 text-xs uppercase font-normal mr-4;
+}
+
+.data-desc {
+  @apply leading-6 pl-0 block text-gray-1050 font-normal text-sm capitalize;
+}
+
+.data-desc-2 {
+  @apply text-[12px] font-normal text-white-250;
+}
