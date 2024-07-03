@@ -33,12 +33,6 @@ const Faq: NextPageWithLayout = () => {
     queryFn: getFaqData,
   });
 
-  const [activeIndex, setActiveIndex] = useState(null);
-
-  const toggleAccordion = (index: any) => {
-    setActiveIndex((prevIndex) => (prevIndex === index ? null : index));
-  };
-
   return (
     <>
       <Head>
@@ -49,7 +43,7 @@ const Faq: NextPageWithLayout = () => {
       ) : (
         <>
           <TermsBanner title={"FAQs"} subtitle="Frequently asked questions" />
-          <div className="container">
+          <div className="container min-h-[calc(100vh-650px)]">
             <div className="py-[60px]">
               <Accordion type="single" collapsible className="w-full">
                 {faqData &&

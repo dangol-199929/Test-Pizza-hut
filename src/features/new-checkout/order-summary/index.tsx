@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useConfig as useConfigStores } from "@/store/config";
 import { useDeliveryAddressHooks } from "@/hooks/useDeliveryAddress.hooks";
 import { useGetCartProductHooks } from "@/hooks/getCartProduct.hooks";
@@ -7,26 +7,46 @@ import { useCart as useCartStore } from "@/store/cart";
 import { getCartData } from "@/services/cart.service";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ICartItem } from "@/interface/cart.interface";
+import { useGetCartsHooks } from "@/hooks/getCart.hooks";
 
 interface IProps {
   isHomeDelivery: any;
   selectedPayment: any;
   handlePlaceOrder: () => void;
+  pickupData: any;
 }
 
 const OrderSummary: FC<IProps> = ({
   isHomeDelivery,
   selectedPayment,
   handlePlaceOrder,
+  pickupData,
 }) => {
   const { deliveryAddressData, isDeliveryAddressLoading } =
     useDeliveryAddressHooks();
-  const { coupon } = useCartStore();
+  const { coupon, couponData } = useCartStore();
   const { configData } = useConfigStores();
   const { cartProducts, cartProductsLoading } = useGetCartProductHooks();
-  const { data: cart } = useQuery<ICartItem>(["getCart"], () =>
-    getCartData({ coupon })
-  );
+  // const { data: cart } = useQuery<ICartItem>(["getCart"], () =>
+  //   getCartData({ coupon })
+  // );
+  const { cart, cartLoading } = useGetCartsHooks();
+  const [proceed, setProceed] = useState(true);
+
+  useEffect(() => {
+    if (isHomeDelivery) {
+      const hasDefaultAddress = deliveryAddressData?.some(
+        (address: any) => address.isDefault
+      );
+      // Ensure both conditions are met before setting proceed to true
+      setProceed(hasDefaultAddress && !!selectedPayment);
+    } else {
+      // Check if pickupData is an object and not empty
+      const isPickupDataNotEmpty =
+        pickupData && Object.keys(pickupData).length > 0;
+      setProceed(!!selectedPayment && isPickupDataNotEmpty);
+    }
+  }, [isHomeDelivery, deliveryAddressData, selectedPayment, pickupData]);
 
   return (
     <div className="py-6 bg-white  text-sm">
@@ -55,33 +75,46 @@ const OrderSummary: FC<IProps> = ({
         <li className="text-sm">Item Total</li>
         <li>
           {configData?.data?.currency}{" "}
-          {cart?.orderAmount || cartProducts?.orderAmount}
+          {couponData?.orderAmount || cart?.orderAmount}
         </li>
       </ul>
       <ul className="flex justify-between px-4 mb-4">
         <li className="font-light text-sm text-slate-850">Delivery Charge</li>
         <li className="text-[14px]">
           {configData?.data?.currency}{" "}
-          {cart?.deliveryCharge || cartProducts?.deliveryCharge || 0}
+          {couponData?.deliveryCharge || cart?.deliveryCharge || 0}
         </li>
       </ul>
       <ul className="flex justify-between px-4 mb-4">
         <li className="text-sm">Service Charge</li>
         <li className="text-[14px]">
           {configData?.data?.currency}{" "}
-          {cart?.serviceCharge || cartProducts?.serviceCharge || 0}
+          {couponData?.serviceCharge || cart?.serviceCharge || 0}
         </li>
       </ul>
       <ul className="flex justify-between px-4 mb-4">
-        <li>Promo Code Discount</li>
+        <li className="text-sm">Discount</li>
         <li className="text-[14px]">
-          - {configData?.data?.currency} {cart?.discountAmount}
+          {couponData?.discount > 0 || (cart?.discountAmount ?? 0) > 0
+            ? "-"
+            : ""}
+          {configData?.data?.currency}{" "}
+          {couponData?.discount ? couponData?.discount : cart?.discountAmount}
         </li>
       </ul>
+      {couponData?.couponDiscount && (
+        <ul className="flex justify-between px-4 mb-4">
+          <li>Promo Code Discount</li>
+          <li className="text-[14px]">
+            - {configData?.data?.currency}{" "}
+            {couponData?.couponDiscount && couponData?.couponDiscount}
+          </li>
+        </ul>
+      )}
       <ul className="flex justify-between p-4 border-t-[1px] border-b-[1px] border-light-gray border-solid">
         <li className="font-medium">Total</li>
         <li className="font-medium">
-          {configData?.data?.currency} {cartProducts?.total}
+          {configData?.data?.currency} {couponData?.total || cart?.total || 0}
         </li>
       </ul>
       {isHomeDelivery && deliveryAddressData && (
@@ -102,7 +135,12 @@ const OrderSummary: FC<IProps> = ({
         </ul>
       )}
       <div className="flex justify-center mt-4 px-4">
-        <Button onClick={handlePlaceOrder} variant={"default"} className="grow">
+        <Button
+          disabled={!proceed}
+          onClick={handlePlaceOrder}
+          variant={"default"}
+          className="grow"
+        >
           PROCEED TO CHECKOUT
         </Button>
       </div>

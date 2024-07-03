@@ -5,6 +5,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { Grid, Navigation } from "swiper";
 import { Swiper, SwiperClass, SwiperSlide, useSwiper } from "swiper/react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 interface IProps {
   loading: boolean;
@@ -45,8 +46,8 @@ const Categories: React.FC<IProps> = ({ loading, categories }) => {
         text="Explore Menu"
         // subTitle="We've got something for everyone"
       />
-      {/* {categories?.length > 6 && (
-        <div className="productSwiper-navigation">
+      {categories?.length > 5 && (
+        <div className="productSwiper-navigation !top-2">
           <button disabled={prevDisable} onClick={handlePrevious}>
             <FaChevronLeft />
           </button>
@@ -54,7 +55,7 @@ const Categories: React.FC<IProps> = ({ loading, categories }) => {
             <FaChevronRight />
           </button>
         </div>
-      )} */}
+      )}
       {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6]?.map((index: number) => (
@@ -114,12 +115,11 @@ const Categories: React.FC<IProps> = ({ loading, categories }) => {
               <CategoryCard
                 key={`categories-${index}`}
                 title={item?.name}
-                totalProducts={item?.productCount}
                 shopLink={`menu?active=${item?.id}`}
                 image={
                   item?.webpBackgroundImage
                     ? item?.webpBackgroundImage
-                    : item?.backgroundImage
+                    : FallBackImg
                 }
               />
             </SwiperSlide>

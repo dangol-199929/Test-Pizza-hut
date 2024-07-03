@@ -47,6 +47,7 @@ export const useHeaderLogic = () => {
   // Define all your queries and mutations here
   const { cart, cartLoading } = useGetCartsHooks();
   const { data: config } = useQuery<IConfig>(["getConfig"], getConfig);
+
   const { data: navCategories } = useQuery<INavCategoryMain>(
     ["getNavCategories"],
     getNavCategories

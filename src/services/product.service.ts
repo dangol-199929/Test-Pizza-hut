@@ -2,6 +2,7 @@ import axiosInstance from "@/axios/axiosInstance";
 import { config } from "../../config";
 
 const apiEndPoint1 = config.gateway.apiEndPoint1;
+const apiEndPoint2 = config.gateway.apiEndPoint2;
 
 export const getProductsFromSlug = async (productSlug: any) => {
   try {
@@ -51,7 +52,6 @@ export const getProductByCategory = async (
 export const getProductByPizza = async () => {
   try {
     let url = `/${apiEndPoint1}/category-product?priceOrder=low`;
-
     const response = await axiosInstance.get(url);
     return response;
   } catch (error) {

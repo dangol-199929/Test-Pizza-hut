@@ -12,10 +12,14 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useCart as useCartStore } from "@/store/cart";
 import { useConfig as useConfigStores } from "@/store/config";
 import { Input } from "@/shared/components/ui/input";
+import TrashIcon from "@/shared/icons/common/TrashIcon";
+import CustomImage from "@/shared/components/custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const CartTableRow = ({ item }: any) => {
   const { coupon } = useCartStore();
   const [quantity, setQuantity] = useState<number>(item?.quantity || 1);
+  const [isLoading, setIsLoading] = useState(false);
   const stock: any = item?.selectedUnit?.stock;
   const queryClient = useQueryClient();
   const { configData } = useConfigStores();
@@ -26,7 +30,9 @@ const CartTableRow = ({ item }: any) => {
     mutationFn: addToCart,
     onSuccess: () => {
       showToast(TOAST_TYPES.success, "Product Updated Successfully");
-
+      setIsLoading(false);
+      queryClient.invalidateQueries(["getRelatedProductsFromId"]);
+      queryClient.invalidateQueries(["getCartProducts"]);
       queryClient.invalidateQueries(["getCart"]);
       if (coupon) {
         queryClient.invalidateQueries(["addCoupon"]);
@@ -72,31 +78,21 @@ const CartTableRow = ({ item }: any) => {
    * For btn onClick function to pass the new value either being increased or decreased.
    */
   const updateCartCall = (newQuantity: number) => {
+    setIsLoading(true);
     setQuantity(newQuantity); //set the updated value
     debouncedHandleUpdateCart(newQuantity); //debounce callback added the updated value
   };
 
-  // useEffect(() => {
-  //     handleUpdateCart(debounceSearchValue);
-  // }, [debounceSearchValue])
   const selectedUnit = item?.selectedUnit;
   const selectedImg = item?.product?.images.find(
     (img: any) => img?.unit_price_id === JSON.parse(selectedUnit?.id)
   );
 
-  /**
-   * To display toast if stock limit reached
-   */
-  // useEffect(() => {
-  //     if (quantity === stock) {
-  //         showToast(TOAST_TYPES.warning, 'Stock limit reached')
-  //     }
-  // }, [quantity])
-
   return (
     <tr className="border-b-gray-350">
       <td className="!py-4 !ps-6 !pe-0 !w-[108px]  text-gray-650 text-start flex justify-start items-center  font-medium">
-        <Image
+        <CustomImage
+          fallback={FallBackImg}
           src={
             selectedImg
               ? selectedImg?.imageName
@@ -115,11 +111,11 @@ const CartTableRow = ({ item }: any) => {
           className="text-base hover:text-primary"
           aria-label="indoor-plants"
         >
-          {item?.product?.name}
+          {item?.product?.name} ({item?.product?.variants[0].title})
           {/* <span className="block capitalize text-orange-4500">({item?.selectedUnit?.title})</span> */}
         </Link>
         {selectedUnit?.stock === 0 && (
-          <p className="px-2 m-auto mt-2 text-xs border border-red-250 text-red-250 w-fit">
+          <p className="px-2 m-auto mt-2 text-xs border border-primary text-primary w-fit">
             Out Of Stock
           </p>
         )}
@@ -146,13 +142,13 @@ const CartTableRow = ({ item }: any) => {
         )}
       </td>
       <td className="!py-4 !px-6 min-w-[180px] text-[#32373D] text-center  font-medium">
-        <div className="flex justify-center m-auto h-[40px] max-w-[115px] border border-red-500 rounded-lg overflow-hidden">
+        <div className="flex justify-center m-auto h-[40px] max-w-[115px] border border-primary rounded-lg overflow-hidden">
           <button
-            className="px-3 text-xl font-light text-red-500 p-[5px] transition-all delay-100 duration-150 hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:hover:opacity-50 "
+            className="px-3 text-xl font-light text-primary p-[5px] transition-all delay-100 duration-150 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:hover:opacity-50 "
             onClick={() => {
               updateCartCall(quantity - 1);
             }}
-            disabled={quantity === 1 ? true : false}
+            disabled={(quantity === 1 ? true : false) || isLoading}
           >
             -
           </button>
@@ -164,11 +160,11 @@ const CartTableRow = ({ item }: any) => {
             maxLength={3}
           />
           <button
-            className="text-xl font-light text-red-500 p-[5px] transition-all delay-100 duration-150 hover:bg-red-500 hover:text-white disabled:cursor-not-allowed disabled:hover:opacity-50 px-3"
+            className="text-xl font-light text-primary p-[5px] transition-all delay-100 duration-150 hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:hover:opacity-50 px-3"
             onClick={() => {
               updateCartCall(quantity + 1);
             }}
-            disabled={quantity === stock ? true : false}
+            disabled={(quantity === stock ? true : false) || isLoading}
           >
             +
           </button>
@@ -199,49 +195,7 @@ const CartTableRow = ({ item }: any) => {
           {cartDeleteLoading ? (
             <ButtonLoader className="!border-primary" />
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-            >
-              <path
-                d="M21 5.97998C17.67 5.64998 14.32 5.47998 10.98 5.47998C9 5.47998 7.02 5.57998 5.04 5.77998L3 5.97998"
-                stroke="#292D32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8.5 4.97L8.72 3.66C8.88 2.71 9 2 10.69 2H13.31C15 2 15.13 2.75 15.28 3.67L15.5 4.97"
-                stroke="#292D32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M18.8499 9.13965L18.1999 19.2096C18.0899 20.7796 17.9999 21.9996 15.2099 21.9996H8.7899C5.9999 21.9996 5.9099 20.7796 5.7999 19.2096L5.1499 9.13965"
-                stroke="#292D32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M10.33 16.5H13.66"
-                stroke="#292D32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M9.5 12.5H14.5"
-                stroke="#292D32"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <TrashIcon />
           )}
         </button>
       </td>

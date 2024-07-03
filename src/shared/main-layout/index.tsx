@@ -1,6 +1,6 @@
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { Router, useRouter } from "next/router";
 import { isMobile, isTablet, isAndroid } from "react-device-detect";
 
 import { useConfig as useConfigStores } from "@/store/config";
@@ -13,6 +13,8 @@ import Footer from "./footer";
 import ScrollToTopButton from "./scroll-to-top";
 import { IWareHouse } from "@/interface/home.interface";
 import { getWareId } from "../utils/local-storage-utils";
+import LoadingBar from "react-top-loading-bar";
+import { useHeaderLogic } from "@/hooks/header.hooks";
 // import TagManager from "react-gtm-module";
 
 const MainLayout: React.FC<{ children: React.ReactNode; configData: any }> = ({
@@ -68,6 +70,16 @@ const MainLayout: React.FC<{ children: React.ReactNode; configData: any }> = ({
   //   }
   // }, [googleTagManagerId]);
 
+  const [progress, setProgress] = useState(0);
+
+  Router.events.on("routeChangeStart", () => {
+    setProgress(70);
+  });
+
+  Router.events.on("routeChangeComplete", () => {
+    setProgress(100);
+  });
+
   return (
     <>
       <Head>
@@ -104,16 +116,16 @@ const MainLayout: React.FC<{ children: React.ReactNode; configData: any }> = ({
           content={configData && configData?.meta?.socialTags["twitter:image"]}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        {/* <link
+        <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-        /> */}
+        />
         {/* <script
           async
           src={`https://www.googletagmanager.com/gtag/js?id=${googleTagManagerId}`}
-        ></script>
-        <script
+        ></script> */}
+        {/* <script
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
@@ -126,6 +138,8 @@ const MainLayout: React.FC<{ children: React.ReactNode; configData: any }> = ({
         {/* <GoogleTagManager googleTagManagerId={googleTagManagerId}/> */}
       </Head>
       <div className="bg-[#F9F8F6]">
+        <LoadingBar color="#f11946" progress={progress} />
+
         <Header />
         {/* <NewHeader /> */}
         {children}

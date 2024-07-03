@@ -1,10 +1,10 @@
-import { getCategoriesList } from "@/services/home.service";
+import { getCategoriesV2 } from "@/services/home.service";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetCategoriesHooks = () => {
-  const { data: categories, isLoading: categoriesLoading }: any = useQuery({
-    queryKey: ["getCategoriesList"],
-    queryFn: getCategoriesList,
+  const { data: categoriesV2, isLoading: categoriesV2Loading }: any = useQuery({
+    queryKey: ["getCategoriesV2"],
+    queryFn: getCategoriesV2,
   });
-  return { categories, categoriesLoading };
+  return { categoriesV2, categoriesV2Loading };
 };

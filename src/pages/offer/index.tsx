@@ -87,7 +87,7 @@ const Offer: NextPageWithLayout = () => {
             <div className="container">
               <section className="my-[60px]">
                 <div>
-                  <div className="flex flex-col sm:flex-row px-[30px] py-[10px] mb-[30px] bg-slate-150">
+                  {/* <div className="flex flex-col sm:flex-row px-[30px] py-[10px] mb-[30px] bg-slate-150">
                     <div className="flex-1 flex items-center mb-4 sm:mb-0 gap-[15px]">
                       <p className="text-gray-750 text-sm leading-[20px]">
                         There Are {offers?.data?.length} Products.
@@ -99,16 +99,16 @@ const Offer: NextPageWithLayout = () => {
                       </p>
                       <SortingDropdown sortChange={handleSortingChange} />
                     </div>
-                  </div>
+                  </div> */}
                   {isLoading ? (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-5">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                       {[1, 2, 3, 4, 5].map((index) => (
                         <SkeletonLoadingCard key={`app-skeleton-${index}`} />
                       ))}
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-1 gap-4 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                         {updatedData?.map((product: any) => (
                           <Card
                             setProductModalId={setProductModalId}

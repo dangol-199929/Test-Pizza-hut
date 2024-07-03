@@ -6,6 +6,8 @@ import Image from "next/image";
 import SearchIcon from "@/shared/icons/common/SearchIcon";
 import TrashIcon from "@/shared/icons/common/TrashIcon";
 import { useConfig as useConfigStores } from "@/store/config";
+import CustomImage from "../custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const CardLg: React.FC<Props> = ({
   type,
@@ -43,7 +45,8 @@ const CardLg: React.FC<Props> = ({
           <div className="w-full md:max-w-[259px] relative">
             <Link href={link} aria-label={`blog-${link}-0`}>
               <figure>
-                <Image
+                <CustomImage
+                  fallback={FallBackImg}
                   src={image}
                   alt="Plant"
                   className="w-full h-auto"

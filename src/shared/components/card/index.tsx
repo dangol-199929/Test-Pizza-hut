@@ -1,22 +1,23 @@
 import { getCookie } from "cookies-next";
 import { debounce } from "lodash";
-import Image from "next/image";
-import Link from "next/link";
 import React, { useCallback, useEffect, useState } from "react";
 import { FaMinus, FaPlus } from "react-icons/fa";
 
 import { useCartsHooks } from "@/hooks/cart.hooks";
+import { useGetCartProductHooks } from "@/hooks/getCartProduct.hooks";
 import { useWishlists } from "@/hooks/wishlist.hooks";
-import { ICartData, ICreateCartItem } from "@/interface/cart.interface";
+import { ICreateCartItem } from "@/interface/cart.interface";
 import { addToCart } from "@/services/cart.service";
 import CardHeartIcon from "@/shared/icons/common/CardHeartIcon";
+import NonVegIcon from "@/shared/icons/common/NonVegIcon";
 import TrashIcon from "@/shared/icons/common/TrashIcon";
+import VegIcon from "@/shared/icons/common/VegIcon";
 import { showToast, TOAST_TYPES } from "@/shared/utils/toast-utils/toast.utils";
 import { useConfig as useConfigStores } from "@/store/config";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import ButtonLoader from "../btn-loading";
-import { Props } from "./card.props";
+import { Button } from "../ui/button";
 import {
   Select,
   SelectContent,
@@ -25,12 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import NonVegIcon from "@/shared/icons/common/NonVegIcon";
-import { useGetCartsHooks } from "@/hooks/getCart.hooks";
-import { useGetCartProductHooks } from "@/hooks/getCartProduct.hooks";
-import { Button } from "../ui/button";
-import { VeganIcon } from "lucide-react";
-import VegIcon from "@/shared/icons/common/VegIcon";
+import { Props } from "./card.props";
+import BagIcon from "@/shared/icons/common/BagIcon";
+import CustomImage from "../custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const Card: React.FC<Props> = ({ product, cartItem }) => {
   //Token
@@ -47,7 +46,13 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
   /*
    * States
    */
-  const [quantity, setQuantity] = useState<number>(1);
+  // Replace the single quantity state with a map of quantities for each variant
+  const [quantities, setQuantities] = useState<{ [variantId: string]: number }>(
+    product.variants.reduce((acc, variant) => {
+      acc[variant.id] = 1; // Initialize each variant's quantity to 1
+      return acc;
+    }, {} as { [variantId: string]: number })
+  );
   const [size, setSize] = useState<any>(product?.variants[0]?.id);
   const { updateCartMutation, handleRemoveFromCart, cartDeleteLoading } =
     useCartsHooks(); //customHook
@@ -69,15 +74,13 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
   });
 
   /*
-   * Handle Add to cart paylod function
+   * Handle Add to cart payload function
    */
   const handleAddToCart = () => {
     const payload: ICreateCartItem = {
       note: "",
-      variant_id: product?.id,
-      size: size,
-      // priceId: product?.unitPrice[0]?.id,
-      quantity: quantity,
+      variant_id: Number(size),
+      quantity: quantities[size], // Use the quantity from the state map
     };
     mutation.mutate(payload);
   };
@@ -93,6 +96,7 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
         variant_id: itemId,
       };
       updateCartMutation.mutate(payload);
+      setQuantities({ ...quantities, [itemId]: newQuantity }); // Update the quantity in the state map
     }
   };
 
@@ -100,20 +104,18 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
    * Used in order to debounce the value(quantity) that is being updated.
    */
   const debouncedHandleUpdateCart = useCallback(
-    //debounce callback to call when value changes
-
-    debounce((newQuantity) => {
-      handleUpdateCart(newQuantity, product?.id);
+    debounce(({ newQuantity, itemId }) => {
+      handleUpdateCart(newQuantity, itemId);
     }, 300),
-    [cartItem]
+    [cartItem] // Ensure this dependency array is correctly capturing all dependencies
   );
 
   /**
    * For btn onClick function to pass the new value either being increased or decreased.
    */
-  const updateCartCall = (newQuantity: number) => {
-    setQuantity(newQuantity); //set the updated value
-    debouncedHandleUpdateCart(newQuantity); //debounce callback added the updated value
+  const updateCartCall = (newQuantity: number, itemId: number) => {
+    setQuantities({ ...quantities, [itemId]: newQuantity }); // Update the quantity in the state map
+    debouncedHandleUpdateCart({ newQuantity, itemId }); // Pass as an object
   };
 
   /*
@@ -135,7 +137,10 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
    */
   useEffect(() => {
     if (cartItem?.quantity) {
-      setQuantity(cartItem?.quantity);
+      setQuantities({
+        ...quantities,
+        [cartItem?.selectedUnit?.id]: cartItem?.quantity,
+      });
     }
   }, []);
 
@@ -146,14 +151,13 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
       setLogin(false);
     }
   }, [loggedIn]);
-  {
-  }
   return (
     <>
       <div className=" card plant-card !rounded-[16px]">
         <figure className="relative aspect-auto-[282/216] min-h-[216px] image-container">
           {product?.webpImages && product?.webpImages?.length > 0 ? (
-            <Image
+            <CustomImage
+              fallback={FallBackImg}
               src={product?.webpImages[0]?.imageName}
               alt="Plant"
               fill
@@ -162,7 +166,8 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
               className="!rounded-t-[16px] !rounded-b-[0px] "
             />
           ) : (
-            <Image
+            <CustomImage
+              fallback={FallBackImg}
               src={product?.images[0]?.imageName}
               alt="Plant"
               fill
@@ -171,7 +176,7 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
             />
           )}
           {product?.hasOffer && (
-            <p className="absolute px-2 py-1 text-xs font-medium text-white rounded-md bottom-2 left-3 bg-red-250">
+            <p className="absolute px-2 py-1 text-xs font-medium text-white rounded-lg top-3 right-3 bg-primary">
               Offer
             </p>
           )}
@@ -186,7 +191,7 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
               {!product?.isFav ? (
                 <button
                   onClick={() => addToFav(product?.id)}
-                  className="absolute bottom-3 right-3 z-[2]"
+                  className="absolute bottom-3 right-3 z-[2] p-2 rounded-full bg-black/10"
                 >
                   {addLoading ? (
                     <ButtonLoader className="!border-primary !block" />
@@ -197,7 +202,7 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
               ) : (
                 <button
                   onClick={() => removeFromFav(product?.id!)}
-                  className="absolute bottom-3 right-3 z-[2] "
+                  className="absolute bottom-3 right-3 z-[2] p-2 rounded-full bg-black/10"
                 >
                   {removeLoading ? (
                     <ButtonLoader className="!border-primary !block" />
@@ -211,18 +216,18 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
         </figure>
         <div className="card-body px-[15px] py-[20px] gap-[10px]">
           <div className="self-stretch flex-col justify-between items-start flex mb-4">
-            <div className="self-stretch flex-col justify-start items-start gap-4 flex">
-              <Link
-                href={`/categories/${product?.categorySlug}`}
-                className="self-stretch text-neutral-700 text-lg font-semibold capitalize"
-              >
+            <div className="self-stretch flex-col justify-start items-start gap-2 flex">
+              <p className="self-stretch text-neutral-700 text-lg font-semibold capitalize h-[56px] line-clamp-[2]">
                 {product?.name}
-              </Link>
+              </p>
               <div className="self-stretch text-neutral-500 text-sm font-normal leading-tight mb-4">
-                {product?.restaurantName}
+                {product?.description}
               </div>
             </div>
-            <Select onValueChange={(value: string) => setSize(value)}>
+            <Select
+              defaultValue={product?.variants[0]?.id.toString()}
+              onValueChange={(value: string) => setSize(value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Size" />
               </SelectTrigger>
@@ -231,10 +236,10 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
                   {product?.variants?.map((variant, index) => (
                     <SelectItem
                       key={index}
-                      className="capitalize"
+                      className="capitalize min-h-[32px]"
                       value={variant?.id.toString()}
                     >
-                      {variant?.size}
+                      {variant?.title}
                     </SelectItem>
                   ))}
                 </SelectGroup>
@@ -264,45 +269,66 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
             ) : (
               <p className="text-neutral-700 text-lg font-bold ">
                 {configData?.data?.currency}{" "}
-                {product?.variants[0]?.sellingPrice}
+                {
+                  product?.variants?.find((variant) => variant?.id === +size)
+                    ?.sellingPrice
+                }
               </p>
             )}
 
-            {!cart?.cartProducts?.some(
-              (item: any) => item?.product.id === product?.id
+            {!cart?.cartProducts?.some((item: any) =>
+              item?.product.variants.some(
+                (variant: any) => variant.id === Number(size)
+              )
             ) ? (
               <Button
                 className={`${
                   mutation.isLoading && "opacity-70 "
-                } disabled:cursor-not-allowed rounded-xl text-sm`}
+                } disabled:cursor-not-allowed rounded-xl text-sm flex justify-start items-center gap-1 min-w-[100px] ps-[7px] pe-[8px]`}
                 onClick={handleAddToCart}
                 disabled={mutation.isLoading}
                 variant={"outline"}
               >
-                Add to Box
-                {mutation.isLoading && <ButtonLoader className="!w-4 !h-4" />}
+                {mutation.isLoading ? (
+                  <ButtonLoader className="!w-4 !h-4 !border-primary" />
+                ) : (
+                  <>
+                    <BagIcon className="h-[24px] w-[24px]" />
+                    Add to Box
+                  </>
+                )}
               </Button>
             ) : (
-              cart?.cartProducts?.some(
-                (item: any) => item?.product.id === product?.id
+              cart?.cartProducts?.some((item: any) =>
+                item?.product.variants.some(
+                  (variant: any) => variant.id === Number(size)
+                )
               ) && (
-                <div className="flex items-center gap-3 px-3 border rounded-lg border-primary h-[34px]">
-                  {quantity === 1 ? (
+                <div className="flex items-center gap-2 px-3 border rounded-xl border-primary h-[40px]">
+                  {quantities[size] === 1 ? (
                     <button
-                      onClick={() => handleRemoveFromCart(cartItem?.id!)}
+                      onClick={() => {
+                        const cartProductId = cart?.cartProducts?.find(
+                          (item: any) =>
+                            item?.product.variants.some(
+                              (variant: any) => variant?.id === Number(size)
+                            )
+                        )?.id;
+                        handleRemoveFromCart(Number(cartProductId));
+                      }}
                       disabled={cartDeleteLoading}
                     >
                       {cartDeleteLoading ? (
                         <ButtonLoader className="hover:!border-white !border-primary !block max-w-[18px] h-[18px]" />
                       ) : (
-                        <TrashIcon className="max-w-[14px] h-auto" />
+                        <TrashIcon className="text-primary max-w-[16px] h-auto" />
                       )}
                     </button>
                   ) : (
                     <button
                       className="text-primary py-1 text-sm w-[14px]"
                       onClick={() => {
-                        updateCartCall(quantity - 1);
+                        updateCartCall(quantities[size] - 1, Number(size));
                       }}
                     >
                       {" "}
@@ -312,16 +338,16 @@ const Card: React.FC<Props> = ({ product, cartItem }) => {
                   <input
                     type="text"
                     className="text-center max-w-[35px] h-full font-bold text-sm border-0 focus:outline-0 text-primary"
-                    value={quantity}
+                    value={quantities[size]}
                     readOnly
                     maxLength={3}
                   />
                   <button
                     className="text-primary py-1 w-[14px] disabled:cursor-not-allowed disabled:opacity-50 disabled:pointer-events-none"
                     onClick={() => {
-                      updateCartCall(quantity + 1);
+                      updateCartCall(quantities[size] + 1, Number(size));
                     }}
-                    disabled={quantity === stock ? true : false}
+                    disabled={quantities[size] === stock ? true : false}
                   >
                     <FaPlus className="max-w-[10px] h-auto" />
                   </button>

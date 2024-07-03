@@ -4,6 +4,8 @@ import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { getCookie } from "cookies-next";
+import CustomImage from "@/shared/components/custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 interface IProps {
   selectedPayment: any;
   setSelectedPayment: any;
@@ -37,12 +39,12 @@ const PaymentMethodModule: FC<IProps> = ({
 
       <RadioGroup
         defaultValue={defaultPaymentMethod}
-        className="flex space-x-4 px-6 mb-4"
+        className="flex flex-wrap gap-4 px-6 mb-4"
         disabled={!isLoggedIn}
       >
         {configData?.data?.paymentMethods?.map((payment: IPaymentMethod) => (
           <div
-            className={`flex flex-col items-center p-4 border rounded-lg cursor-pointer relative ${
+            className={`flex items-center p-4 border rounded-lg cursor-pointer relative ${
               selectedPayment?.id === payment.id
                 ? "border-red-500 bg-red-50"
                 : "border-gray-200"
@@ -50,7 +52,8 @@ const PaymentMethodModule: FC<IProps> = ({
             key={payment.id}
             onClick={() => selectHandler(payment)}
           >
-            <Image
+            <CustomImage
+              fallback={FallBackImg}
               alt="Checkout Img"
               width={50}
               height={50}
@@ -58,7 +61,9 @@ const PaymentMethodModule: FC<IProps> = ({
               src={payment?.webpIcon ? payment?.webpIcon : payment?.icon}
               className="w-[50px] h-[50px] mb-2"
             />
-            <span className="capitalize">{payment.title}</span>
+            <span className="capitalize whitespace-nowrap ms-2">
+              {payment.title}
+            </span>
             {payment?.cashback && (
               <span className="mt-1 whitespace-nowrap text-xs p-1 px-2 rounded-md bg-yellow-500 absolute -bottom-2 left-[50%] translate-x-[-50%]">
                 {payment.cashback}

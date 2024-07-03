@@ -2,10 +2,15 @@ import MainLayout from "@/shared/main-layout";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React from "react";
-import { OrderSuccess, OrderFailure } from "@/shared/lib/image-config";
+import {
+  OrderSuccess,
+  OrderFailure,
+  FallBackImg,
+} from "@/shared/lib/image-config";
 import Image from "next/image";
 import { config } from "../../../../config";
 import axios from "axios";
+import CustomImage from "@/shared/components/custom-image";
 
 const Review = () => {
   const router = useRouter();
@@ -18,7 +23,8 @@ const Review = () => {
             <div>
               {/* Order Success */}
               <div className="max-w-[520px] mx-auto text-center mt-[20px]">
-                <Image
+                <CustomImage
+                  fallback={FallBackImg}
                   alt="Order success Img"
                   width={200}
                   height={200}
@@ -48,7 +54,8 @@ const Review = () => {
             <div>
               {/* Order Fail */}
               <div className="max-w-[520px] mx-auto text-center mt-[20px]">
-                <Image
+                <CustomImage
+                  fallback={FallBackImg}
                   alt="Fail image"
                   width={200}
                   height={200}

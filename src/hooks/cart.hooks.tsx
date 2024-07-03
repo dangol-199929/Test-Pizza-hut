@@ -22,6 +22,7 @@ export const useCartsHooks = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(["getCart"]);
       showToast(TOAST_TYPES.success, "Item Deleted From Cart Successfully");
+      queryClient.invalidateQueries(["getCartProducts"]);
       if (router.pathname === "/wishlist") {
         queryClient.invalidateQueries(["wishlistProducts"]);
       }

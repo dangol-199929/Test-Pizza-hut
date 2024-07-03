@@ -1,31 +1,30 @@
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { FC, useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { getToken } from "@/shared/utils/cookies-utils/cookies.utils";
 import { IOutlets } from "@/interface/checkout.interface";
 import { getOutletAddress } from "@/services/checkout.service";
 import { RadioGroup, RadioGroupItem } from "@/shared/components/ui/radio-group";
 import { Label } from "@/shared/components/ui/label";
 import { useProfile as useProfileStore } from "@/store/profile";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/ui/popover";
 import { format } from "date-fns";
-import { cn } from "@/shared/utils/utils";
-import { CalendarIcon, MapPin } from "lucide-react";
-import { Calendar } from "@/shared/components/ui/calendar";
+import { Map, MapPin } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/shared/components/ui/dialog";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import { zodResolver } from "@hookform/resolvers/zod";
 const addressSchema = z.object({
-  date: z.string().min(1, "Date is required"),
-  time: z.string().min(1, "Time is required"),
-  customerName: z.string().min(1, "Customer Name is required"),
-  customerPhoneNumber: z.string().min(1, "Customer Phone Number is required"),
-  pickupMode: z.enum(["myself", "forOthers"]),
+  date: z.date(),
+  name: z.string().min(1, "Customer Name is required"),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Time must be in HH:MM format"),
+  phoneNumber: z
+    .string()
+    .regex(/^9\d{9}$/, "Phone number must start with 9 and be 10 digits long"),
 });
 interface IProps {
   outletId: any;
@@ -44,13 +43,7 @@ const SelfPickupMode: FC<IProps> = ({
   pickupData,
   setPickupData,
 }) => {
-  const form = useForm({
-    resolver: zodResolver(addressSchema),
-  });
-
-  const token = getToken();
-
-  const { data: outlets } = useQuery<IOutlets[]>(
+  const { data: outlets, isLoading: outletsLoading } = useQuery<IOutlets[]>(
     ["getOutlets"],
     getOutletAddress
   );
@@ -72,6 +65,7 @@ const SelfPickupMode: FC<IProps> = ({
       name: "",
       phoneNumber: "",
     },
+    resolver: zodResolver(addressSchema),
   });
 
   const changeOption = (value: string) => {
@@ -116,54 +110,107 @@ const SelfPickupMode: FC<IProps> = ({
       });
     }
   }, [optionChanged, pickupSelected]);
+  useEffect(() => {
+    if (outlets) {
+      setOutletId(outlets[0].id);
+    }
+  }, [outlets]);
   return (
     <div>
-      <p className="text-base font-semibold">Self Outlets</p>
-
+      <p className="text-base font-semibold mb-2">Self Outlets</p>
+      {/* OUTLETS */}
       <div className="max-w-[446px] border rounded-lg p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <MapPin className="w-6 h-6 mr-2" />
-          <div>
-            <div className="flex items-center">
-              <h2 className="font-semibold text-lg">
-                {outlets && outlets[0]?.name}
-              </h2>
-              <span className="text-green-500 text-sm ml-2">1.3km</span>
-            </div>
-            <p className="text-gray-600"> {outlets && outlets[0]?.address}</p>
-            <p className="text-gray-500 text-sm">
-              Store Timing ( {outlets && outlets[0]?.closingTime})
-            </p>
-            <p className="text-gray-800">{outlets && outlets[0]?.phone}</p>
+        {outletsLoading ? (
+          <div className="w-[450px] me-6">
+            <Skeleton className="h-6 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full" />
           </div>
-        </div>
-        <button className="text-gray-500 hover:text-gray-700">Change</button>
-      </div>
-      {/* <div className="grid grid-cols-2 gap-4 mb-4">
-        <RadioGroup>
-          {outlets?.map((outlet: any) => (
-            <div
-              className="flex items-center pb-2 mb-2 space-x-2 border p-3 rounded-lg"
-              key={outlet.id}
-            >
-              <RadioGroupItem
-                onClick={() => setOutletId(outlet?.id)}
-                checked={outletId === outlet?.id}
-                value={outlet?.id}
-                id={outlet?.id}
-                className="hidden"
-              />
-              <Label
-                htmlFor={outlet?.id}
-                className="flex items-center cursor-pointer"
-              >
-                <span className="capitalize">{outlet?.name}</span>
-              </Label>
+        ) : (
+          <div className="flex items-center">
+            <MapPin className="w-6 h-6 mr-2" />
+            <div>
+              <div className="flex items-center">
+                <h2 className="font-semibold text-lg">
+                  {outlets &&
+                    outlets?.find((outlet) => outlet.id === outletId)?.name}
+                </h2>
+                {outlets && (
+                  <span className="text-green-500 text-sm ml-2">
+                    {outlets?.find((outlet) => outlet.id === outletId)?.distance
+                      ? `${
+                          outlets?.find((outlet) => outlet.id === outletId)
+                            ?.distance
+                        } km`
+                      : ""}
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-600">
+                {outlets &&
+                  outlets?.find((outlet) => outlet.id === outletId)?.address}
+              </p>
+              <p className="text-gray-500 text-sm">
+                Store Timing ({" "}
+                {outlets &&
+                  outlets?.find((outlet) => outlet.id === outletId)
+                    ?.closingTime}
+                )
+              </p>
+              <p className="text-gray-800">
+                {outlets &&
+                  outlets?.find((outlet) => outlet.id === outletId)?.phone}
+              </p>
             </div>
-          ))}
-        </RadioGroup>
-      </div> */}
+          </div>
+        )}
+        <Dialog>
+          <DialogTrigger asChild>
+            <div className="text-gray-500 hover:text-gray-700 cursor-pointer hover:text-gray-700">
+              Change
+            </div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <RadioGroup defaultValue={outletId.toString()}>
+              {outlets?.map((outlet: IOutlets, index: number) => (
+                <div key={outlet?.id} className={`py-4 border-b`}>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2 mb-1 w-full">
+                      <Map size={18} />
+                      <span className={`text-lg font-medium`}>
+                        {outlet?.name}
+                      </span>
+                    </div>
+                    <RadioGroupItem
+                      id={`${outlet?.id}`}
+                      value={`${outlet?.id}`}
+                      className="ms-auto"
+                      onClick={() => {
+                        setOutletId(outlet?.id);
+                        changeOption(`${outlet?.id}`);
+                      }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">
+                    {outlet?.address}
+                  </p>
+                  <p className="text-sm text-gray-500 mb-1">
+                    Store Timing (9:00 AM to 10:00PM)
+                  </p>
+                  <p className="text-sm mb-1">{outlet?.phone}</p>
+                  {outlet?.distance && (
+                    <p className="text-sm text-green-600">
+                      {outlet?.distance} Km Away
+                    </p>
+                  )}
+                </div>
+              ))}
+            </RadioGroup>
+          </DialogContent>
+        </Dialog>
+      </div>
 
+      {/* PICKUP INFO */}
       <form
         onSubmit={handleSubmit(handleNext)}
         className="grid grid-cols-12 gap-0 md:gap-4 mt-6"
@@ -177,49 +224,11 @@ const SelfPickupMode: FC<IProps> = ({
           <label className="mb-2 label">
             <span className="font-normal text-xs text-[#707070]">Date</span>
           </label>
-
-          <Controller
-            name="date"
-            control={control}
-            rules={{ required: "Date is required." }}
-            render={({ field }) => (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"ghost"}
-                    className={cn(
-                      "w-full rounded-md bg-[#F0F3F5] border-0  h-12 justify-start text-base font-normal",
-                      errors?.date && "border-destructive"
-                    )}
-                  >
-                    {field?.value ? (
-                      format(field?.value, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                    <CalendarIcon className="h-4 w-4 ml-auto opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date: any) => {
-                      field.onChange(date);
-                      trigger("date");
-                    }}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
+          <Input
+            type="date"
+            readOnly
+            value={format(new Date(), "yyyy-MM-dd")}
           />
-          {/* {errors?.date && (
-            <p className="text-destructive text-xs leading-[24px] mt-1">
-              {errors?.date?.message}
-            </p>
-          )} */}
         </div>
 
         {/* Time */}
@@ -233,33 +242,33 @@ const SelfPickupMode: FC<IProps> = ({
             maxLength={20}
             {...register("time", { required: "Time is required." })}
             className={`input-time flex justify-between items-center w-full ${
-              errors.time ? "border-destructive" : "border-gray-350"
+              errors.time ? "border-red-500 border-[1px] " : "border-gray-350"
             }`}
           />
-          {/* {errors?.time && (
-            <p className=P"text-destructive text-xs leading-[24px] mt-1">
-              {errors.time.message}
+          {errors?.time && (
+            <p className="text-destructive text-xs leading-[24px] mt-1">
+              {errors.time.message?.toString()}
             </p>
-          )} */}
+          )}
         </div>
 
         <div className="col-span-12">
           <p className="text-base font-semibold">Customer Details</p>
           <RadioGroup
             defaultValue={pickupSelected}
-            className="flex items-center gap-6 mt-4"
+            className="flex items-center flex-wrap gap-6 mt-4"
           >
             <div
-              className={`flex items-center border rounded-xl  ${
+              className={`flex items-center border rounded-xl relative ${
                 pickupSelected === "self" ? "border-red-500 !bg-red-500/10" : ""
               } `}
-              onClick={(e: any) => changeOption(e.target.value)}
+              // onClick={(e: any) => changeOption(e.target.value)}
             >
               <RadioGroupItem
                 onClick={(e: any) => changeOption(e.target.value)}
                 value={"self"}
                 id={"self"}
-                className="hidden"
+                className="opacity-0 h-full w-full left-0 top-0 absolute z-10"
               />
               <Label
                 htmlFor={"self"}
@@ -269,18 +278,18 @@ const SelfPickupMode: FC<IProps> = ({
               </Label>
             </div>
             <div
-              className={`flex items-center border rounded-xl ${
+              className={`flex items-center border rounded-xl relative ${
                 pickupSelected === "other"
                   ? "border-red-500 !bg-red-500/10"
                   : ""
               } `}
-              onClick={(e: any) => changeOption(e.target.value)}
+              // onClick={(e: any) => changeOption(e.target.value)}
             >
               <RadioGroupItem
                 onClick={(e: any) => changeOption(e.target.value)}
                 value={"other"}
                 id={"other"}
-                className="hidden"
+                className="opacity-0 h-full w-full left-0 top-0 absolute z-10"
               />
               <Label
                 htmlFor={"other"}
@@ -302,13 +311,12 @@ const SelfPickupMode: FC<IProps> = ({
           </label>
           <Input
             type="text"
-            placeholder="Enter Your Name"
+            placeholder="Enter Customer Name"
             maxLength={20}
             readOnly={pickupSelected === "self"}
             onKeyUp={() => trigger("name")}
-            // onKeyDown={handleKeyDownAlphabet}
             className={` ${
-              errors.name ? "border-destructive" : "border-gray-350"
+              errors.name ? "border-red-500 border-[1px] " : "border-gray-350"
             }`}
             {...register("name", {
               required: "Name is required",
@@ -318,11 +326,11 @@ const SelfPickupMode: FC<IProps> = ({
               },
             })}
           />
-          {/* {errors.name && (
+          {errors.name && (
             <p className="text-destructive text-xs leading-[24px] mt-1">
-              {errors.name.message}
+              {errors?.name?.message?.toString()}
             </p>
-          )} */}
+          )}
         </div>
 
         {/* Phone NUmber */}
@@ -334,27 +342,35 @@ const SelfPickupMode: FC<IProps> = ({
           </label>
           <Input
             type="number"
-            {...register("phoneNumber")}
+            {...register("phoneNumber", {
+              required: "Number is required",
+              pattern: {
+                value: /^[9][0-9]{9}$/,
+                message: "Number must be a 10-digit number starting with 9",
+              },
+            })}
             readOnly={pickupSelected === "self"}
             onKeyUp={() => trigger("phoneNumber")}
-            // onKeyDown={handleKeyDownNumber}
-            placeholder="Enter Your Phone Number"
+            placeholder="Enter Customer Phone Number"
             className={`${
-              errors.phoneNumber ? "border-destructive" : "border-gray-350"
+              errors.phoneNumber
+                ? "border-red-500 border-[1px] "
+                : "border-gray-350"
             }`}
           />
-          {/* {errors.phoneNumber && (
+          {errors?.phoneNumber?.message && (
             <p className="text-destructive text-xs leading-[24px] mt-1">
-              {errors.phoneNumber.message
-                ? errors.phoneNumber.message
-                : "Error in phone number"}
+              {errors?.phoneNumber?.message.toString()}
             </p>
-          )} */}
+          )}
         </div>
+
         <Button type="submit" className="col-span-6" variant={"default"}>
           Submit
         </Button>
       </form>
+
+      {/* PICKUP INFO END */}
     </div>
   );
 };

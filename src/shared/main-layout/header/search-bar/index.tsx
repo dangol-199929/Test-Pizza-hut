@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Input } from "@/shared/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce.hooks";
 import { getSuggestionResults } from "@/services/search.service";
+import CustomImage from "@/shared/components/custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const SearchComponent: React.FC = () => {
   const router = useRouter();
@@ -125,12 +127,13 @@ const SearchComponent: React.FC = () => {
                           onClick={() => redirectDetailPage(prev?.title)}
                         >
                           <div className="flex items-center">
-                            <Image
+                            <CustomImage
                               src={prev?.image}
                               width={30}
                               height={20}
                               alt={`image-${_i}`}
                               className="object-contain aspect-square"
+                              fallback={FallBackImg}
                             />
                             <span className="ps-2">{prev.title}</span>
                           </div>

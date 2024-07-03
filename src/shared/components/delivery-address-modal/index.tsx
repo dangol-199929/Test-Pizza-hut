@@ -20,9 +20,15 @@ import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 
-const LeafletMap = dynamic(() => import("@/shared/components/leaflet"), {
-  ssr: false,
-});
+const LeafletMap = dynamic(
+  () =>
+    typeof window !== "undefined"
+      ? import("@/shared/components/leaflet").then((mod) => mod.default)
+      : Promise.resolve(() => null),
+  {
+    ssr: false,
+  }
+);
 
 interface IProps {
   formData: IDeliveryAddress;

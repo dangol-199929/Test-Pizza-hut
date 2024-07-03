@@ -44,10 +44,12 @@ const PrivacyPolicy: NextPageWithLayout = () => {
       ) : (
         <>
           <TermsBanner title={`PIZZA HUT ${privacyPolicy?.data?.title}`} />
-          <div
-            className="main-wrapper-block !mx-32 font-rubik"
-            dangerouslySetInnerHTML={{ __html: descriptionContent }}
-          />
+          <div className="container">
+            <div
+              className="main-wrapper-block !mx-4 sm:mx-32 font-rubik"
+              dangerouslySetInnerHTML={{ __html: descriptionContent }}
+            />
+          </div>
         </>
       )}
     </>

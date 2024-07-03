@@ -3,12 +3,25 @@ import { config } from "../../config";
 import { addWareHouseToStorage } from "@/shared/utils/local-storage-utils";
 
 const apiEndPoint1 = config.gateway.apiEndPoint1;
+const apiEndPoint2 = config.gateway.apiEndPoint2;
 
-export const getCategoriesList = async () => {
+// export const getCategoriesList = async () => {
+//   try {
+//     await setWarehouseIdAxios();
+//     const response = await axiosInstance.get(
+//       `/${apiEndPoint1}/categories?onlyTopLevel=true&withoutFilter=true`
+//     );
+//     return response.data;
+//   } catch (error) {
+//     throw error;
+//   }
+// };
+
+export const getCategoriesV2 = async () => {
   try {
     await setWarehouseIdAxios();
     const response = await axiosInstance.get(
-      `/${apiEndPoint1}/categories?onlyTopLevel=true&withoutFilter=true`
+      `/${apiEndPoint2}/categories?parentId=`
     );
     return response.data;
   } catch (error) {
@@ -56,7 +69,7 @@ export const getConfig = async () => {
     }
 
     await setWarehouseIdAxios();
-    const response = await axiosInstance.get(`/${apiEndPoint1}/configs`);
+    const response = await axiosInstance.get(`/${apiEndPoint1}/web-config`);
     const configData = response.data;
 
     // Store the config data and timestamp in localStorage

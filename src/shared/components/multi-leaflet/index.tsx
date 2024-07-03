@@ -19,12 +19,10 @@ const icon = L.icon({
 });
 
 interface IProps {
-  lat: number;
-  long: number;
+  locations: { lat: number; long: number; name?: string }[];
   onChange: any;
-  address?: string;
 }
-const LeafletMap: FC<IProps> = ({ lat, long, onChange, address }) => {
+const MultiLeafletMap: FC<IProps> = ({ locations, onChange }) => {
   const [positions, setPositions] = useState<[number, number]>([
     27.7172, 85.324,
   ]); // Coordinates for Nepal
@@ -62,56 +60,27 @@ const LeafletMap: FC<IProps> = ({ lat, long, onChange, address }) => {
     return null;
   };
 
-  const Markers = () => {
+  const Markers: FC<{ locations: IProps["locations"] }> = ({ locations }) => {
     const map = useMap();
-    const provider = new OpenStreetMapProvider();
+
     useEffect(() => {
-      map.flyTo([lat, long], 13); // flyTo provides animation
-    }, [lat, long, map]);
-
-    useMapEvents({
-      click(e) {
-        const newLat = e.latlng.lat;
-        const newLong = e.latlng.lng;
-        map.flyTo([newLat, newLong], 13);
-        // inform parent about the change
-
-        provider.search({ query: `${newLat}, ${newLong}` }).then((results) => {
-          if (results && results.length > 0) {
-            const address = results[0].label; // Get the address from the first result
-            onChange(newLat, newLong, address);
-          }
-        });
-        // onChange(newLat, newLong);
-      },
-      dragend(e) {
-        if (e.target instanceof L.Marker) {
-          const newPosition = e.target.getLatLng();
-          map.flyTo([newPosition.lat, newPosition.lng], 13);
-          provider
-            .search({ query: `${newPosition.lat}, ${newPosition.lng}` })
-            .then((results) => {
-              if (results && results.length > 0) {
-                const address = results[0].label;
-                onChange(newPosition.lat, newPosition.lng, address);
-              }
-            });
-        }
-      },
-    });
+      if (locations.length > 0) {
+        map.flyTo([locations[0].lat, locations[0].long], 13); // Optionally center the map around the first location
+      }
+    }, [locations, map]);
 
     return (
-      <Marker
-        position={[lat, long]}
-        draggable={true}
-        eventHandlers={{
-          dragend: (e) => {
-            const newPosition = e.target.getLatLng();
-            map.flyTo([newPosition.lat, newPosition.lng], 13);
-          },
-        }}
-        icon={icon}
-      ></Marker>
+      <>
+        {locations.map((location, index) => (
+          <Marker
+            key={index}
+            position={[location.lat, location.long]}
+            icon={icon}
+          >
+            <Popup>{location.name}</Popup>
+          </Marker>
+        ))}
+      </>
     );
   };
 
@@ -146,11 +115,11 @@ const LeafletMap: FC<IProps> = ({ lat, long, onChange, address }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
       />
-      <Markers />
+      <Markers locations={locations} />
       <ChangeCursorOnDrag />
       <GeoSearch />
     </MapContainer>
   );
 };
 
-export default LeafletMap;
+export default MultiLeafletMap;

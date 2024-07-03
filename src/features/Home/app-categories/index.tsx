@@ -10,6 +10,7 @@ import { getToken } from "@/shared/utils/cookies-utils/cookies.utils";
 import { useQuery } from "@tanstack/react-query";
 
 import HalfLeftCard from "./half-left-card";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 interface IProps {
   prev: IAppCategories;
@@ -65,9 +66,10 @@ const AppCategories: React.FC<IProps> = ({ prev }) => {
           <section className="mb-[60px]">
             <div className="relative flex items-center justify-center">
               <HomeTitle font="font" type="title-section" text={prev?.title} />
-
-              {/* {prev?.product?.length > 0 && (
-                <div className="!static productSwiper-navigation mb-[45px]">
+            </div>
+            <div className="flex justify-end items-center -mt-6 mb-4 z-20 relative">
+              {prev?.product?.length > 4 && (
+                <div className="!static productSwiper-navigation">
                   <button disabled={prevDisable} onClick={handlePrevious}>
                     <FaChevronLeft />
                   </button>
@@ -75,7 +77,7 @@ const AppCategories: React.FC<IProps> = ({ prev }) => {
                     <FaChevronRight />
                   </button>
                 </div>
-              )} */}
+              )}
             </div>
             <>
               <Swiper

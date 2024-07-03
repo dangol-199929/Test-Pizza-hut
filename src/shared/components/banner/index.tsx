@@ -9,6 +9,8 @@ import "swiper/css/effect-fade";
 import BannerSkeletonLoader from "../skeleton/banner";
 import { useRouter } from "next/router";
 import { useGetWebHome } from "@/hooks/webhome.hooks";
+import CustomImage from "../custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const Banner = () => {
   const router = useRouter();
@@ -27,7 +29,7 @@ const Banner = () => {
   };
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden mx-4">
+    <div className="bg-white shadow-md rounded-3xl overflow-hidden mx-4">
       {isInitialLoading ? (
         <BannerSkeletonLoader />
       ) : (
@@ -54,7 +56,8 @@ const Banner = () => {
                     handleOpenNewTab(`${prev.slug}`, prev?.linkType)
                   }
                 >
-                  <Image
+                  <CustomImage
+                    fallback={FallBackImg}
                     src={
                       prev?.webpBannerImage
                         ? prev?.webpBannerImage

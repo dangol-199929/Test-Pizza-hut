@@ -21,9 +21,9 @@ import { NextPage } from "next";
 import type { AppProps } from "next/app";
 
 import { Rubik } from "next/font/google";
-import { ReactElement, ReactNode } from "react";
+import { ReactElement, ReactNode, useRef } from "react";
 import { ToastContainer } from "react-toastify";
-
+import LoadingBar from "react-top-loading-bar";
 const rubik = Rubik({ subsets: ["latin"] });
 
 export type NextPageWithLayout<P = unknown, IP = P> = NextPage<P, IP> & {

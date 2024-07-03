@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import Image from "next/image";
-import { checkoutImg } from "@/shared/lib/image-config";
+import { FallBackImg, checkoutImg } from "@/shared/lib/image-config";
 import {
   Tabs,
   TabsContent,
@@ -10,6 +10,7 @@ import {
 import SelfPickupMode from "./self-pickup";
 import DeliveryMode from "./delivery";
 import { getCookie } from "cookies-next";
+import CustomImage from "@/shared/components/custom-image";
 interface IProps {
   setIsHomeDelivery: any;
   setOutletId: any;
@@ -54,7 +55,8 @@ const AddressAndDelivery: FC<IProps> = ({
             }}
             className="text-base font-normal p-6 rounded-xl aspect-square flex flex-col items-center justify-center gap-4 border border-[#EDEDED]"
           >
-            <Image
+            <CustomImage
+              fallback={FallBackImg}
               src={checkoutImg?.delivery}
               alt="delivery"
               width={74}
@@ -71,7 +73,8 @@ const AddressAndDelivery: FC<IProps> = ({
             }}
             className="text-base font-normal p-6 px-9 rounded-xl aspect-square flex flex-col items-center justify-center gap-4 border border-[#EDEDED]"
           >
-            <Image
+            <CustomImage
+              fallback={FallBackImg}
               src={checkoutImg?.pickUp}
               alt="delivery"
               width={74}

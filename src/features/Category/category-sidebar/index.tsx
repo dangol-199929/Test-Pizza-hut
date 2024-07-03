@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 
 import { useGetCategoriesHooks } from "@/hooks/geCategory.hooks";
 
@@ -7,23 +6,26 @@ const PizzaCategorySidebar = () => {
   const router = useRouter();
   const { active } = router.query;
 
-  const { categories, categoriesLoading } = useGetCategoriesHooks();
+  const { categoriesV2, categoriesV2Loading } = useGetCategoriesHooks();
+  const wait = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handleCategoryClick = (id: string) => {
-    router.push(`/menu?active=${id}`, undefined, { shallow: true });
+  const handleCategoryClick = async (id: string) => {
     const section = document.getElementById(id as string);
-    const offset = 120; // Adjust this value to set the gap at the top
+    const offset = 115; // Adjust this value to set the gap at the top
     const topPosition =
       (section?.getBoundingClientRect().top ?? 0) + window.pageYOffset - offset;
-    window.scrollTo({ top: topPosition, behavior: "smooth" });
+    await window.scrollTo({ top: topPosition, behavior: "smooth" });
+    await wait(1000);
+    await router.push(`/menu?active=${id}`, undefined, { shallow: true });
   };
 
   return (
     <div className="order-last col-span-12 md:order-first md:col-span-3 right-sidebar">
-      <nav className="fixed top-[72px] left-0 w-full bg-primary z-20 block md:hidden">
+      <nav className="fixed top-[72px] left-0 w-full bg-primary z-20 block md:hidden whitespace-nowrap overflow-auto">
         <div className="container ">
           <div className="flex justify-between items-center ms-[120px]">
-            {categories?.data?.map((item: any, index: number) => (
+            {categoriesV2?.data?.map((item: any, index: number) => (
               <button
                 key={`categories-${index}`}
                 onClick={() => handleCategoryClick(item.id)}
@@ -49,14 +51,14 @@ const PizzaCategorySidebar = () => {
           </div>
         </div>
         <div className="w-full h-96 flex-col justify-start items-start inline-flex rounded-b-xl">
-          {categories?.data?.map((item: any, index: number) => (
+          {categoriesV2?.data?.map((item: any, index: number) => (
             <button
               key={`categories-${index}`}
               onClick={() => handleCategoryClick(item.id)}
               className={`w-full pl-4 pr-4 py-3 border border-gray-200 flex justify-start items-center gap-2.5 ${
                 active === String(item?.id) ? "bg-pink-100" : "bg-white"
               } ${
-                index === categories.data.length - 1
+                index === categoriesV2.data.length - 1
                   ? "rounded-bl-xl rounded-br-xl"
                   : ""
               }`}

@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import Title from "../title";
+import CustomImage from "../custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 export interface IAdBannerComponent {
   adBanner: IAdBanner;
@@ -30,7 +32,8 @@ const AdBanner = ({ adBanner }: IAdBannerComponent) => {
       ) : (
         ""
       )}
-      <Image
+      <CustomImage
+        fallback={FallBackImg}
         src={
           adBanner?.webpWebImage ? adBanner?.webpWebImage : adBanner?.webImage
         }

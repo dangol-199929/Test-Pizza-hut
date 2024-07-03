@@ -25,14 +25,15 @@ import { getToken } from "@/shared/utils/cookies-utils/cookies.utils";
 import { useGetCartProductHooks } from "@/hooks/getCartProduct.hooks";
 
 enum COUPON_METHODS {
-  ADD_COUPON = "Apply Coupon",
-  DELETE_COUPON = "Remove Coupon",
+  ADD_COUPON = "Apply",
+  DELETE_COUPON = "Remove",
 }
 
 const Cart: NextPageWithLayout = () => {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [tempCoupon, setTempCoupon] = useState("");
+  const [couponToast, setCouponToast] = useState(false);
   const { configData } = useConfigStores();
   const { coupon, setCoupon, setCouponData, couponData } = useCartStore();
   const token = getToken();
@@ -57,7 +58,9 @@ const Cart: NextPageWithLayout = () => {
     {
       onSuccess: (data) => {
         setCouponData(data);
-        showToast(TOAST_TYPES.success, "Coupon Added Successfully");
+        setCouponToast(true);
+        !couponToast &&
+          showToast(TOAST_TYPES.success, "Coupon Added Successfully");
       },
       onError: (error) => {
         setCouponData({});
@@ -67,7 +70,7 @@ const Cart: NextPageWithLayout = () => {
         setCouponText(COUPON_METHODS.ADD_COUPON);
         setCoupon("");
         setTempCoupon("");
-        showToast(TOAST_TYPES.error, error[0]?.detail);
+        showToast(TOAST_TYPES.error, error[0]?.detail || "");
         queryClient.invalidateQueries(["getCart"]);
       },
       enabled: !!coupon,
@@ -98,6 +101,7 @@ const Cart: NextPageWithLayout = () => {
     if (localStorage.getItem("coupon")) {
       localStorage.removeItem("coupon");
     }
+    setCouponToast(false);
     setCouponText(COUPON_METHODS.ADD_COUPON);
     setCoupon("");
     setTempCoupon("");
@@ -162,7 +166,6 @@ const Cart: NextPageWithLayout = () => {
       setCouponData({});
     }
   }, [isError, couponCartError]);
-
   return (
     <>
       <Head>
@@ -174,8 +177,8 @@ const Cart: NextPageWithLayout = () => {
         <>
           <Breadcrumb />
           <div className="container my-[60px]">
-            <div className="grid grid-cols-5 gap-3 md:gap-6">
-              <div className="col-span-5 md:col-span-3">
+            <div className="grid grid-cols-10 gap-3 md:gap-6">
+              <div className="col-span-10 md:col-span-7">
                 <div className="bg-white rounded-xl grow">
                   <Title
                     type=""
@@ -212,17 +215,9 @@ const Cart: NextPageWithLayout = () => {
                     </table>
                   </div>
                 </div>
-                {relatedProducts && relatedProducts?.data.length !== 0 && (
-                  <RelatedProducts
-                    relatedProductsLoading={relatedProductsLoading}
-                    favList={favList}
-                    relatedProducts={relatedProducts?.data}
-                    cart={cartProducts}
-                  />
-                )}
               </div>
 
-              <div className="bg-white rounded-xl p-6 col-span-5 md:col-span-2 h-[430px]">
+              <div className="bg-white rounded-xl p-6 col-span-10 md:col-span-3 h-[430px]">
                 <h4 className="text-lg font-bold text-slate-850">
                   Order Summary
                 </h4>
@@ -254,6 +249,19 @@ const Cart: NextPageWithLayout = () => {
                         : cart?.serviceCharge}
                     </p>
                   </div>
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <p className="text-sm">Discount</p>
+                    <p className="text-base font-medium">
+                      {couponData?.discount > 0 ||
+                      (cart?.discountAmount ?? 0) > 0
+                        ? "-"
+                        : ""}
+                      {configData?.data?.currency}{" "}
+                      {couponData?.discount
+                        ? couponData?.discount
+                        : cart?.discountAmount}
+                    </p>
+                  </div>
                   <div className="mt-[20px]">
                     <form
                       onSubmit={handleSubmit}
@@ -274,21 +282,21 @@ const Cart: NextPageWithLayout = () => {
                       <button
                         type="submit"
                         disabled={tempCoupon === "" || tempCoupon === null}
-                        className="text-[#FF8910] text-base font-medium cursor-pointer"
+                        className="text-[#FF8910] text-base font-medium cursor-pointer whitespace-nowrap"
                       >
                         {couponText}
                       </button>
                     </form>
                   </div>
-                  {/* {couponData?.couponDiscount && ( */}
-                  <div className="flex items-center justify-between w-full mt-[20px] mb-2">
-                    <p className="text-sm">Promo Code Discount</p>
-                    <p className="text-base font-medium slate-850">
-                      - {configData?.data?.currency}{" "}
-                      {couponData?.couponDiscount}
-                    </p>
-                  </div>
-                  {/* )} */}
+                  {couponData?.couponDiscount && (
+                    <div className="flex items-center justify-between w-full mt-[20px] mb-2">
+                      <p className="text-sm">Promo Code Discount</p>
+                      <p className="text-base font-medium slate-850">
+                        - {configData?.data?.currency}{" "}
+                        {couponData?.couponDiscount}
+                      </p>
+                    </div>
+                  )}
                   <div className="flex items-center justify-between w-full mt-[20px] mb-2">
                     <p className="text-sm font-medium">To Pay</p>
                     <p className="text-base font-medium">
@@ -304,6 +312,16 @@ const Cart: NextPageWithLayout = () => {
                     Checkout
                   </button>
                 </div>
+              </div>
+              <div className="col-span-10 md:col-span-7">
+                {relatedProducts && relatedProducts?.data.length !== 0 && (
+                  <RelatedProducts
+                    relatedProductsLoading={relatedProductsLoading}
+                    favList={favList}
+                    relatedProducts={relatedProducts?.data}
+                    cart={cartProducts}
+                  />
+                )}
               </div>
             </div>
           </div>

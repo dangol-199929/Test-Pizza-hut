@@ -29,9 +29,17 @@ const addressSchema = z.object({
     .min(1, "Customer Phone Number is required")
     .max(10, "Customer Phone Number is invalid"),
 });
-const LeafletMap = dynamic(() => import("@/shared/components/leaflet"), {
-  ssr: false,
-});
+// Correcting the dynamic import for LeafletMap
+
+const LeafletMap = dynamic(
+  () =>
+    typeof window !== "undefined"
+      ? import("@/shared/components/leaflet").then((mod) => mod.default)
+      : Promise.resolve(() => null),
+  {
+    ssr: false,
+  }
+);
 
 const DeliveryMode = () => {
   const token = getToken();
@@ -231,7 +239,7 @@ const DeliveryMode = () => {
   return (
     <div>
       <p className="text-base font-semibold mb-4">Delivery Details</p>
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         {deliveryAddressData?.map((deliveryAddressContent: any, index: any) => (
           <div key={index}>
             <AddressCard
@@ -257,9 +265,9 @@ const DeliveryMode = () => {
       {(formActive || isEditing) && (
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-2 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
         >
-          <div>
+          <div className="col-span-1">
             <label
               htmlFor="title"
               className="font-normal text-xs text-[#707070]"
@@ -269,7 +277,7 @@ const DeliveryMode = () => {
             <Input id="title" placeholder="Title" {...register("title")} />
             {errors.title && <p>{errors.title.message}</p>}
           </div>
-          <div>
+          <div className="col-span-1">
             <label htmlFor="location">Location</label>
             <Input
               id="location"
@@ -280,7 +288,7 @@ const DeliveryMode = () => {
             />
             {errors.location && <p>{errors.location.message}</p>}
           </div>
-          <div>
+          <div className="col-span-1">
             <label htmlFor="name">Customer Name</label>
             <Input
               id="name"
@@ -289,7 +297,7 @@ const DeliveryMode = () => {
             />
             {errors.name && <p>{errors.name.message}</p>}
           </div>
-          <div>
+          <div className="col-span-1">
             <label htmlFor="mobile_number">Customer Phone Number</label>
             <Input
               type="number"
@@ -299,7 +307,7 @@ const DeliveryMode = () => {
             />
             {errors.mobile_number && <p>{errors.mobile_number.message}</p>}
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 sm:col-span-2">
             <div className="h-[280px] mb-3">
               <LeafletMap
                 lat={formData.lat || 27.7172}
@@ -309,7 +317,11 @@ const DeliveryMode = () => {
               />
             </div>
             <div className="mt-4">
-              <Button variant={"default"} type="submit" className="w-[50%]">
+              <Button
+                variant={"default"}
+                type="submit"
+                className="w-full sm:w-[50%]"
+              >
                 Submit
               </Button>
             </div>

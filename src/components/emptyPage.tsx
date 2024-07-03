@@ -1,7 +1,8 @@
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
-import { emptyPages } from "@/shared/lib/image-config";
+import { FallBackImg, emptyPages } from "@/shared/lib/image-config";
+import CustomImage from "@/shared/components/custom-image";
 
 export interface IEmptyPage {
   type?: string | string[];
@@ -12,13 +13,14 @@ const EmptyPage = ({ type }: IEmptyPage) => {
     <div className="pt-0">
       <div className="container">
         <div>
-          <Image
+          <CustomImage
             src={emptyPages?.search}
-            alt=""
-            className="flex mx-auto img-fluid"
-            width={330}
-            height={330}
+            width={64}
+            height={64}
+            alt={`Image`}
+            fallback={FallBackImg}
           />
+
           <div className="text-center">
             <h2 className="text-lg font-medium capitalize">
               No {type || "Products"} Found

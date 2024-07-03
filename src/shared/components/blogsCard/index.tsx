@@ -6,20 +6,27 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { parseISO, format } from "date-fns";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import CustomImage from "../custom-image";
+import { FallBackImg } from "@/shared/lib/image-config";
 
 const BlogsCard: React.FC<Props> = ({ blog }) => {
-
   const changeDateFormat = (dateString: string) => {
     const date = parseISO(dateString);
-    return <span>{format(date, 'd LLLL yyyy')}</span>
-  }
+    return <span>{format(date, "d LLLL yyyy")}</span>;
+  };
 
   return (
     <div className="w-full bg-white card ">
       <Link href={`/blogs/${blog.slug}`} aria-label={`blog-${blog?.slug}`}>
         <figure>
-          <Image
+          <CustomImage
+            fallback={FallBackImg}
             src={blog.thumbnail}
             alt="Plant"
             className="w-full h-auto aspect-[420/300]"
@@ -43,7 +50,8 @@ const BlogsCard: React.FC<Props> = ({ blog }) => {
                 className="block mb-2 text-2xl font-semibold text-left truncate card-title hover:text-primary"
               >
                 {blog.title}
-              </Link></TooltipTrigger>
+              </Link>
+            </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[300px] text-center">
               {blog?.title}
             </TooltipContent>
@@ -66,10 +74,10 @@ const BlogsCard: React.FC<Props> = ({ blog }) => {
             {blog?.createdAt}
           </Link>
         </div>
-        <p className="mb-4 text-sm line-clamp-2"
+        <p
+          className="mb-4 text-sm line-clamp-2"
           dangerouslySetInnerHTML={{ __html: blog?.content }}
-        >
-        </p>
+        ></p>
         <div className="card-actions">
           <Link
             href={`/blogs/${blog.slug}`}
@@ -84,6 +92,6 @@ const BlogsCard: React.FC<Props> = ({ blog }) => {
       </div>
     </div>
   );
-}
+};
 
 export default BlogsCard;

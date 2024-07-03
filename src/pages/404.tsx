@@ -1,4 +1,5 @@
-import { fourzerofour } from "@/shared/lib/image-config";
+import CustomImage from "@/shared/components/custom-image";
+import { FallBackImg, fourzerofour } from "@/shared/lib/image-config";
 import MainLayout from "@/shared/main-layout";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +9,8 @@ const NotFound = () => {
   return (
     <div>
       <div className="container flex flex-col items-center py-8 text-center">
-        <Image
+        <CustomImage
+          fallback={FallBackImg}
           src={fourzerofour}
           width={634}
           height={417}

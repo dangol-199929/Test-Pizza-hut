@@ -8,12 +8,11 @@ import { setAuthorizationHeader } from "@/axios/axiosInstance";
 import { useGetCategoriesHooks } from "@/hooks/geCategory.hooks";
 import { useGetCartsHooks } from "@/hooks/getCart.hooks";
 import { useDebounce } from "@/hooks/useDebounce.hooks";
-import { ICartData } from "@/interface/cart.interface";
 import { IConfig } from "@/interface/config.interface";
-import { INavCategoryMain, IWareHouse } from "@/interface/home.interface";
+import { IWareHouse } from "@/interface/home.interface";
 import { logout } from "@/services/auth.service";
 import { flushCart } from "@/services/cart.service";
-import { getConfig, getNavCategories } from "@/services/home.service";
+import { getConfig } from "@/services/home.service";
 import { getProfile } from "@/services/profile.service";
 import { getSuggestionResults } from "@/services/search.service";
 import CartDropdown from "@/shared/components/cartDropdown";
@@ -50,6 +49,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+
 import SearchComponent from "./search-bar";
 
 const Header = () => {
@@ -60,7 +60,7 @@ const Header = () => {
   const loggedIn = getCookie("isLoggedIn");
   const queryClient = useQueryClient();
 
-  const { setConfigData, configData } = useConfigStores();
+  const { configData } = useConfigStores();
   const { coupon, setCoupon, setCouponData } = useCartStore();
   const { warehouseId, setWareHouseId } = useWareHouseStore();
   const { profileData, setProfileData } = useProfileStore();
@@ -81,17 +81,17 @@ const Header = () => {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   const { cart, cartLoading } = useGetCartsHooks();
-  const { categories, categoriesLoading } = useGetCategoriesHooks();
+  const { categoriesV2, categoriesV2Loading } = useGetCategoriesHooks();
 
   const { data: config } = useQuery<IConfig>({
     queryKey: ["getConfig"],
     queryFn: getConfig,
   });
 
-  const { data: navCategories } = useQuery<INavCategoryMain>({
-    queryKey: ["getNavCategories"],
-    queryFn: getNavCategories,
-  });
+  // const { data: navCategories } = useQuery<INavCategoryMain>({
+  //   queryKey: ["getNavCategories"],
+  //   queryFn: getNavCategories,
+  // });
 
   const { data: profile } = useQuery({
     queryKey: ["getProfile", token],
@@ -222,37 +222,39 @@ const Header = () => {
   /**
    * When the warehouse is changed
    */
-  const { data: cartFlush } = useQuery<ICartData>(
-    ["getCartFlush", warehouseChange],
-    flushCart,
-    {
-      enabled: warehouseChange,
-    }
-  );
+  // const { data: cartFlush } = useQuery<ICartData>(
+  //   ["getCartFlush", warehouseChange],
+  //   flushCart,
+  //   {
+  //     enabled: warehouseChange,
+  //   }
+  // );
 
   /**
    * Change dropdown function
    */
-  const changeWarehouse = (warehouse: IWareHouse) => {
+  const changeWarehouse = async (warehouse: IWareHouse) => {
     const id: any = warehouse?.id;
     const name: string = warehouse?.name;
-    setWareHouseId(id);
-    setWarehouseName(name);
+    await setWareHouseId(id);
+    await setWarehouseName(name);
     if (cart && cart?.numberOfCartProducts > 0) {
       setShowWarehouseAlertModal(true);
+      queryClient.invalidateQueries(["getCartProducts"]);
     } else {
+      queryClient.invalidateQueries(["getCartProducts"]);
       setWarehouseChange(true);
       localStorage.setItem(LocalKeys.WAREHOUSE_ID, id);
       queryClient.invalidateQueries(["getCart"]);
-
       queryClient.invalidateQueries(["getHomeData"]);
       queryClient.invalidateQueries(["getNavCategories"]);
-      queryClient.invalidateQueries(["getCategoriesList"]);
+      queryClient.invalidateQueries(["getCategoriesV2"]);
       if (token) {
         queryClient.invalidateQueries(["wishlistProducts"]);
       }
       router.push("/");
     }
+    await flushCart();
   };
 
   /**
@@ -268,7 +270,7 @@ const Header = () => {
 
     queryClient.invalidateQueries(["getHomeData"]);
     queryClient.invalidateQueries(["getNavCategories"]);
-    queryClient.invalidateQueries(["getCategoriesList"]);
+    queryClient.invalidateQueries(["getCategoriesV2"]);
     if (token) {
       queryClient.invalidateQueries(["wishlistProducts"]);
     }
@@ -310,11 +312,11 @@ const Header = () => {
     }
   };
 
-  useEffect(() => {
-    if (config) {
-      setConfigData(config);
-    }
-  }, [config]);
+  // useEffect(() => {
+  //   if (config) {
+  //     setConfigData(config);
+  //   }
+  // }, [config]);
 
   //setting input value to empty when page changed
   useEffect(() => {
@@ -357,7 +359,7 @@ const Header = () => {
 
       queryClient.invalidateQueries(["getHomeData"]);
       queryClient.invalidateQueries(["getNavCategories"]);
-      queryClient.invalidateQueries(["getCategoriesList"]);
+      queryClient.invalidateQueries(["getCategoriesV2"]);
       router?.push("/");
     }
   }, [cart, warehouseChange]);
@@ -412,9 +414,9 @@ const Header = () => {
               </Link>
               <Link
                 href={`${
-                  categoriesLoading
+                  categoriesV2Loading
                     ? ""
-                    : `/menu?active=${categories?.data[0]?.id}`
+                    : `/menu?active=${categoriesV2?.data[0]?.id}`
                 } `}
               >
                 <p className="text-base font-medium hover:text-primary">
@@ -463,7 +465,9 @@ const Header = () => {
                     </DropdownMenuItem>
                   ))
                 ) : (
-                  <DropdownMenuItem>{warehouse?.name}</DropdownMenuItem>
+                  <DropdownMenuItem className={`bg-[#ebf5ff] font-semibold`}>
+                    {warehouse?.name}
+                  </DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -520,7 +524,7 @@ const Header = () => {
                    hover:text-primary transition-all  whitespace-nowrap`}
                   >
                     <UserIcon className="hover:text-primary me-1" />
-                    Login In
+                    Log In
                   </Link>
                   /
                   <Link
@@ -535,7 +539,7 @@ const Header = () => {
               )}
             </div>
           </div>
-          <Drawer cart={cart} categories={navCategories?.data!} />
+          <Drawer cart={cart} categories={categoriesV2?.data!} />
 
           {/* Offer & Cart */}
           <div className="items-center gap-3 hidden items-center">

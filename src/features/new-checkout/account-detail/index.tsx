@@ -93,7 +93,9 @@ const AccountDetail = () => {
     setIsLoggedIn(!!loggedIn);
   }, [loggedIn]);
   return (
-    <div className={`mx-auto py-4 bg-white ${isLoggedIn ? "!hidden" : ""}`}>
+    <div
+      className={`mx-auto mb-4 py-4 bg-white ${isLoggedIn ? "!hidden" : ""}`}
+    >
       <div className="flex justify-between items-center mb-6 px-6 pb-4 border-b-[1px]">
         <h1 className="text-2xl font-bold">Account Detail</h1>
         <Link href={"/login"}>
@@ -104,9 +106,9 @@ const AccountDetail = () => {
       </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-2 gap-4 px-6"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6"
       >
-        <div>
+        <div className="col-span-1">
           <label className="block text-sm font-medium text-gray-700">
             First Name
           </label>
@@ -115,7 +117,7 @@ const AccountDetail = () => {
             <p className="text-red-500">{errors.first_name.message}</p>
           )}
         </div>
-        <div>
+        <div className="col-span-1">
           <label className="block text-sm font-medium text-gray-700">
             Last Name
           </label>
@@ -124,7 +126,7 @@ const AccountDetail = () => {
             <p className="text-red-500">{errors.last_name.message}</p>
           )}
         </div>
-        <div>
+        <div className="col-span-1">
           <label className="block text-sm font-medium text-gray-700">
             Phone Number
           </label>
@@ -137,7 +139,7 @@ const AccountDetail = () => {
             <p className="text-red-500">{errors.mobile_number.message}</p>
           )}
         </div>
-        <div>
+        <div className="col-span-1">
           <label className="block text-sm font-medium text-gray-700">
             Email Address
           </label>
@@ -146,7 +148,7 @@ const AccountDetail = () => {
             <p className="text-red-500">{errors.email.message}</p>
           )}
         </div>
-        <div className="col-span-2">
+        <div className="col-span-1 sm:col-span-2">
           <Button type="submit" className="w-full bg-red-500 text-white">
             {isSubmitting ? "Loading..." : "NEXT"}
           </Button>

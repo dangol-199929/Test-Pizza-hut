@@ -29,7 +29,6 @@ export const getAllWishlistProducts = async (token: any) => {
       );
       return response.data;
     } catch (error) {
-      // console.log(error?.response?.data?.errors?.title);
       throw error;
     }
   }

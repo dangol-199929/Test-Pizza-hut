@@ -1,14 +1,16 @@
-import { CartEmpty } from "@/shared/lib/image-config";
+import { CartEmpty, FallBackImg } from "@/shared/lib/image-config";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
+import CustomImage from "../../custom-image";
 
 const EmptyOrder = () => {
   return (
     <div className="container">
       <div className="max-w-[520px] mx-auto text-center py-12">
         <div className="">
-          <Image
+          <CustomImage
+            fallback={FallBackImg}
             className="object-contain mx-auto w-[150px] h-auto"
             src={CartEmpty}
             width={100}

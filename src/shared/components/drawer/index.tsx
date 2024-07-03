@@ -1,21 +1,27 @@
 import { deleteCookie } from "cookies-next";
-import { Menu } from "lucide-react";
+import {
+  Heart,
+  LogOut,
+  MapPin,
+  Menu,
+  Search,
+  ShoppingBag,
+  Tag,
+  UserCircle2,
+  Wallet,
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
-import { AiOutlineHeart, AiOutlineLogout } from "react-icons/ai";
-import { BiUser } from "react-icons/bi";
+import { useEffect, useState } from "react";
 
-import { ICartData, ICartItem } from "@/interface/cart.interface";
+import { ICartItem } from "@/interface/cart.interface";
 import { INavCategories, IWareHouse } from "@/interface/home.interface";
 import { logout } from "@/services/auth.service";
 import { flushCart } from "@/services/cart.service";
 import { getAllWishlistProducts } from "@/services/wishlist.service";
 import { LocalKeys } from "@/shared/enum";
 import CaretDownIcon from "@/shared/icons/common/CaretDownIcon";
-import LocationIcon from "@/shared/icons/common/LocationIcon";
-import SearchIcon from "@/shared/icons/common/SearchIcon";
 import TagIcon from "@/shared/icons/common/TagIcon";
-import UserIcon from "@/shared/icons/common/UserIcon";
 import { getToken } from "@/shared/utils/cookies-utils/cookies.utils";
 import { getWareId } from "@/shared/utils/local-storage-utils";
 import { showToast, TOAST_TYPES } from "@/shared/utils/toast-utils/toast.utils";
@@ -25,12 +31,6 @@ import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import ConfirmationModal from "../confirmation-modal";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "../ui/dialog";
 import {
@@ -131,39 +131,41 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
   /**
    * When the warehouse is changed
    */
-  const { data: cartFlush } = useQuery<ICartData>(
-    ["getCartFlush", warehouseChange],
-    flushCart,
-    {
-      enabled: warehouseChange,
-    }
-  );
+  // const { data: cartFlush } = useQuery<ICartData>(
+  //   ["getCartFlush", warehouseChange],
+  //   flushCart,
+  //   {
+  //     enabled: warehouseChange,
+  //   }
+  // );
 
   /**
    * Change dropdown function
    */
-  const changeWarehouse = (warehouse: IWareHouse) => {
+  const changeWarehouse = async (warehouse: IWareHouse) => {
     const id: any = warehouse?.id;
     const name: string = warehouse?.name;
-    setWareHouseId(id);
-    setWarehouseName(name);
+    await setWareHouseId(id);
+    await setWarehouseName(name);
     if (cart && cart?.numberOfCartProducts > 0) {
       setOpenDrawer(false);
       setShowWarehouseAlertModal(true);
+      queryClient.invalidateQueries(["getCartProducts"]);
     } else {
       setWarehouseChange(true);
       setOpenDrawer(false);
       localStorage.setItem(LocalKeys.WAREHOUSE_ID, id);
       queryClient.invalidateQueries(["getCart"]);
-
+      queryClient.invalidateQueries(["getCartProducts"]);
       queryClient.invalidateQueries(["getHomeData"]);
       queryClient.invalidateQueries(["getNavCategories"]);
-      queryClient.invalidateQueries(["getCategoriesList"]);
+      queryClient.invalidateQueries(["getCategoriesV2"]);
       if (token) {
         queryClient.invalidateQueries(["wishlistProducts"]);
       }
       router.push("/");
     }
+    await flushCart();
   };
 
   /**
@@ -179,7 +181,7 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
 
     queryClient.invalidateQueries(["getHomeData"]);
     queryClient.invalidateQueries(["getNavCategories"]);
-    queryClient.invalidateQueries(["getCategoriesList"]);
+    queryClient.invalidateQueries(["getCategoriesV2"]);
     if (token) {
       queryClient.invalidateQueries(["wishlistProducts"]);
     }
@@ -226,9 +228,9 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
           <Menu />
         </SheetTrigger>
 
-        <SheetContent side={"left"} className="w-64 p-4 side-drawer">
-          <p className="flex items-center gap-2 px-4 py-2 mb-3 text-sm text-white rounded-md bg-primary">
-            <LocationIcon />
+        <SheetContent side={"right"} className="w-64 p-4 side-drawer">
+          <p className="flex items-center gap-2 px-4 py-2 mb-3 text-sm text-white rounded-xl bg-primary">
+            <MapPin size={18} strokeWidth={1.5} />
             City:{" "}
             {configData?.data?.warehouses &&
             configData?.data?.warehouses?.length > 1 ? (
@@ -262,7 +264,7 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
               <p>{configData?.data?.warehouses[0]?.name}</p>
             )}
           </p>
-          <div className="p-0 border border-primary rounded-full !bg-white mb-3 w-full flex items-center justify-between">
+          <div className="p-0 border border-primary rounded-xl !bg-white mb-3 w-full flex items-center justify-between">
             <Input
               placeholder="Search"
               className=" py-0 m-0 pe-0 !bg-transparent max-w-[10.5rem] border-0 h-[30px] flex-grow-1"
@@ -270,11 +272,8 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
               onChange={handleInputChange}
               onKeyDown={triggerSearch}
             />
-            <Button className="p-2 px-4 rounded-l-none rounded-r-full -me-[1px]">
-              <SearchIcon
-                className="max-h-[0.9rem] max-w-[0.9rem]"
-                onClick={handleSearch}
-              />
+            <Button className="p-2 px-4 rounded-l-none rounded-r-xl -me-[1px]">
+              <Search size={18} onClick={handleSearch} />
             </Button>
           </div>
 
@@ -288,60 +287,17 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
               >
                 Home
               </Button>
-              <Accordion type="single" collapsible className="w-full">
-                {categories &&
-                  categories?.map((option) => (
-                    <React.Fragment key={option?.id}>
-                      {option?.subCategories.length > 0 ? (
-                        <AccordionItem
-                          value={`item-${option?.id}`}
-                          className="border-0"
-                        >
-                          <AccordionTrigger className="p-1 text-sm border-b hover:no-underline border-b-primary">
-                            <p
-                              className="font-normal "
-                              onClick={() =>
-                                changeRoute(`/categories/${option?.slug}`)
-                              }
-                            >
-                              {option?.name}
-                            </p>
-                          </AccordionTrigger>
-                          <AccordionContent className="drawer-accordion-content">
-                            {option?.subCategories.map((subItem, index) => (
-                              <p
-                                key={index}
-                                className="p-1 text-sm font-normal border-b border-b-primary"
-                              >
-                                <Button
-                                  className="h-auto p-0 font-normal"
-                                  variant={"ghost"}
-                                  onClick={() =>
-                                    changeRoute(`/categories/${subItem?.slug}`)
-                                  }
-                                  aria-label="plant-consultant"
-                                >
-                                  {subItem?.name}
-                                </Button>
-                              </p>
-                            ))}
-                          </AccordionContent>
-                        </AccordionItem>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            changeRoute(`/categories/${option?.slug}`)
-                          }
-                          className="block w-full rounded-none text-start h-auto font-normal  leading-[25px] text-sm border-b border-b-primary p-1"
-                          aria-label="our outlets"
-                        >
-                          {option?.name}
-                        </Button>
-                      )}
-                    </React.Fragment>
-                  ))}
-              </Accordion>
+              {categories &&
+                categories?.map((option) => (
+                  <Link
+                    key={option?.id}
+                    href={`/menu?active=${option?.id}`}
+                    className="block w-full rounded-none text-start h-auto font-normal  leading-[25px] text-sm border-b border-b-primary p-1"
+                    aria-label="our outlets"
+                  >
+                    {option?.name}
+                  </Link>
+                ))}
               <div className="mt-6">
                 <p className="mb-2 text-base font-bold">My Account</p>
 
@@ -352,7 +308,7 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
                       onClick={() => changeRoute("/account/profile")}
                       className="flex justify-start h-auto mb-2 leading-[33px] gap-3 p-0 text-base font-normal capitalize text-start"
                     >
-                      <BiUser />
+                      <UserCircle2 size={18} />
                       View Profile
                     </Button>
                     <Button
@@ -361,14 +317,14 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
                       className="flex justify-start leading-[33px]  mb-2 gap-3 p-0 text-base font-normal capitalize btn btn-ghost text-start"
                       aria-label="wishlist"
                     >
-                      <AiOutlineHeart />
+                      <Heart size={18} />
                       Wishlist (
                       {favouriteList ? favouriteList?.data?.length : 0})
                     </Button>
                   </>
                 ) : (
                   <div className="flex items-center gap-3 mb-2">
-                    <UserIcon className="text-black" />
+                    <Tag size={18} />
                     <div className="flex items-center gap-1 leading-[33px]">
                       <Button
                         variant="ghost"
@@ -400,6 +356,24 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
                   <TagIcon />
                   Offer
                 </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => changeRoute("/cart")}
+                  className="flex  mb-2 justify-start leading-[33px] gap-3 p-0 text-base font-normal capitalize btn btn-ghost text-start"
+                  aria-label="offer"
+                >
+                  <ShoppingBag size={16} />
+                  Cart
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => changeRoute("/checkout")}
+                  className="flex  mb-2 justify-start leading-[33px] gap-3 p-0 text-base font-normal capitalize btn btn-ghost text-start"
+                  aria-label="offer"
+                >
+                  <Wallet size={16} />
+                  Checkout
+                </Button>
                 <Dialog open={showModal} onOpenChange={setShowModal}>
                   {token && (
                     <DialogTrigger>
@@ -408,7 +382,7 @@ const Drawer = ({ categories, cart }: IOptionProps) => {
                         className="flex justify-start leading-[33px] gap-3 p-0 text-base font-normal capitalize btn btn-ghost text-start"
                       >
                         {/* <TagIcon className="text-black" /> */}
-                        <AiOutlineLogout />
+                        <LogOut size={18} />
                         Logout
                       </Button>
                     </DialogTrigger>

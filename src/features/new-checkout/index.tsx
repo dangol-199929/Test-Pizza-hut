@@ -1,4 +1,3 @@
-import { format, parse } from "date-fns";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -16,6 +15,8 @@ import AddressAndDelivery from "./address-and-delivery";
 import OrderNote from "./order-note";
 import OrderSummary from "./order-summary";
 import PaymentMethodModule from "./payment-methods";
+import format from "date-fns/format";
+import parse from "date-fns/parse";
 
 const NewCheckoutContent = () => {
   const router = useRouter();
@@ -62,7 +63,7 @@ const NewCheckoutContent = () => {
                 break;
             }
             queryClient.invalidateQueries(["getCart"]);
-
+            queryClient.invalidateQueries(["getCartProducts"]);
             // setPlaceBtnDisable(false);
           })
 
@@ -76,7 +77,6 @@ const NewCheckoutContent = () => {
       } else {
         // Ensure the time string is correctly parsed into a Date object
         const parsedTime = parse(pickupData?.time, "HH:mm", new Date());
-
         // Format the Date object into a string with format "HH:mm:ss"
         const formattedTime = format(parsedTime, "HH:mm:ss");
 
@@ -106,7 +106,7 @@ const NewCheckoutContent = () => {
                 break;
             }
             queryClient.invalidateQueries(["getCart"]);
-
+            queryClient.invalidateQueries(["getCartProducts"]);
             // setPlaceBtnDisable(false);
           })
 
@@ -149,7 +149,7 @@ const NewCheckoutContent = () => {
     <div>
       <Breadcrumb />
       <div className="grid grid-cols-12 gap-4 container my-6">
-        <div className="col-span-8">
+        <div className="col-span-12 md:col-span-8">
           <AccountDetail />
           <AddressAndDelivery
             setOutletId={setOutletId}
@@ -164,11 +164,12 @@ const NewCheckoutContent = () => {
           />
           <OrderNote note={note} setNote={setNote} />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-12 md:col-span-4">
           <OrderSummary
             isHomeDelivery={isHomeDelivery}
             selectedPayment={selectedPayment}
             handlePlaceOrder={handlePlaceOrder}
+            pickupData={pickupData}
           />
         </div>
       </div>

@@ -1,7 +1,6 @@
 import { ICartData } from "@/interface/cart.interface";
 import { IProduct } from "@/interface/product.interface";
 import Card from "@/shared/components/card";
-import ProductDetailModal from "@/shared/components/product-detail-modal";
 import SkeletonLoadingCard from "@/shared/components/skeleton/products";
 import Title from "@/shared/components/title";
 import { useQuery } from "@tanstack/react-query";

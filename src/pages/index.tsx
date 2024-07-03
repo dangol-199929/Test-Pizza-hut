@@ -25,7 +25,7 @@ const Home: NextPageWithLayout = () => {
 
   const { homeData, isInitialLoading } = useGetWebHome();
 
-  const { categories, categoriesLoading } = useGetCategoriesHooks();
+  const { categoriesV2, categoriesV2Loading } = useGetCategoriesHooks();
 
   const adBanners = homeData?.data?.adBanners || [];
   const { data: bannerPopupData, isLoading: bannerPopupLoading } = useQuery(
@@ -33,7 +33,6 @@ const Home: NextPageWithLayout = () => {
     getBannerPopup
   );
   const bannerPop = getCookie("bannerPopup");
-
   return (
     <div className="bg-white pb-14 -mb-14">
       <Head>
@@ -82,12 +81,10 @@ const Home: NextPageWithLayout = () => {
             )}
         </div>
         <div className="container overflow-visible">
-          <div>
-            <Categories
-              loading={categoriesLoading}
-              categories={categories?.data}
-            />
-          </div>
+          <Categories
+            loading={categoriesV2Loading}
+            categories={categoriesV2?.data}
+          />
         </div>
         <div className="container">
           <Title type="title-section" text={"OFFER"} mb="!mb-[0px]" />
